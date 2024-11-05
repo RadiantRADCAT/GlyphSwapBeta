@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Token Swap Interface</title>
+<style>
+body {
+overflow: hidden;
+font-family: Arial, sans-serif;
+background-image: url('https://static.wixstatic.com/media/c0fd9f_7a29e6d3a40f4821a14dbe8f93b9d069~mv2.jpg'); /* Replace with your image URL */
+background-size: cover;
+background-position: center;
+padding: 20px;
+margin: 0;
+min-height: 100vh;
+display: flex;
+align-items: center;
+justify-content: center;
+}
+
+.container {
+max-width: 480px;
+width: 100%;
+background: rgba(255, 255, 255, 0.9);
+border-radius: 16px;
+box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+padding: 24px;
+backdrop-filter: blur(10px);
+-webkit-backdrop-filter: blur(10px);
+}
+
+.header {
+display: flex;
+align-items: center;
+justify-content: space-between;
+margin-bottom: 24px;
+}
+
+.header h1 {
+font-size: 24px;
+font-weight: 600;
+color: #111827;
+margin: 0;
+}
+
+.token-select {
+position: relative;
+margin-bottom: 16px;
+}
+
+.token-select label {
+display: block;
+font-size: 14px;
+font-weight: 500;
+color: #6B7280;
+margin-bottom: 8px;
+}
+
+.select-button {
+width: 100%;
+padding: 12px;
+background: rgba(255, 255, 255, 0.8);
+border: 1px solid rgba(255, 255, 255, 0.2);
+border-radius: 8px;
+display: flex;
+align-items: center;
+justify-content: space-between;
+cursor: pointer;
+transition: all 0.2s;
+backdrop-filter: blur(5px);
+-webkit-backdrop-filter: blur(5px);
+}
+
+.select-button:hover {
+background: rgba(255, 255, 255, 0.95);
+border-color: #FFAD33;
+}
+
+.token-info {
+display: flex;
+align-items: center;
+gap: 12px;
+}
+
+.token-info img {
+width: 32px;
+height: 32px;
+border-radius: 50%;
+}
+
+.dropdown {
+position: absolute;
+top: 100%;
+left: 0;
+right: 0;
+background: rgba(255, 255, 255, 0.95);
+border: 1px solid rgba(255, 255, 255, 0.2);
+border-radius: 8px;
+margin-top: 4px;
+max-height: 300px;
+overflow-y: auto;
+z-index: 100;
+display: none;
+box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+backdrop-filter: blur(5px);
+-webkit-backdrop-filter: blur(5px);
+}
+
+.dropdown.active {
+display: block;
+}
+
+.dropdown-item {
+padding: 12px;
+display: flex;
+align-items: center;
+gap: 12px;
+cursor: pointer;
+transition: background-color 0.2s;
+}
+
+.dropdown-item:hover {
+background: rgba(255, 255, 255, 0.8);
+}
+
+.dropdown-item img {
+width: 32px;
+height: 32px;
+border-radius: 50%;
+}
+
+.input-group {
+margin-bottom: 16px;
+}
+
+input {
+width: 100%;
+padding: 12px;
+background: rgba(255, 255, 255, 0.8);
+border: 1px solid rgba(255, 255, 255, 0.2);
+border-radius: 8px;
+font-size: 16px;
+transition: all 0.2s;
+box-sizing: border-box;
+backdrop-filter: blur(5px);
+-webkit-backdrop-filter: blur(5px);
+}
+
+input:focus {
+outline: none;
+border-color: #FFAD33;
+background: rgba(255, 255, 255, 0.95);
+}
+
+.submit-button {
+width: 100%;
+padding: 12px;
+background: rgba(255, 173, 51, 0.9);
+color: white;
+border: none;
+border-radius: 8px;
+font-weight: 500;
+cursor: pointer;
+transition: background-color 0.2s;
+backdrop-filter: blur(5px);
+-webkit-backdrop-filter: blur(5px);
+}
+
+.submit-button:hover {
+background: rgba(184, 134, 11, 0.9);
+}
+
+.result {
+text-align: center;
+}
+
+.qr-code {
+width: 150px;
+height: 150px;
+margin: 20px auto;
+border-radius: 8px;
+}
+
+.wallet-address {
+background: rgba(245, 247, 255, 0.8);
+padding: 8px 12px;
+border-radius: 8px;
+font-family: monospace;
+display: flex;
+align-items: center;
+justify-content: center;
+gap: 8px;
+margin: 12px 0;
+backdrop-filter: blur(5px);
+-webkit-backdrop-filter: blur(5px);
+}
+
+.copy-button {
+background: none;
+border: none;
+cursor: pointer;
+padding: 4px;
+border-radius: 4px;
+transition: background-color 0.2s;
+}
+
+.copy-button:hover {
+background: rgba(229, 231, 235, 0.8);
+}
+
+.success-message {
+color: #059669;
+font-size: 14px;
+margin-top: 4px;
+}
+
+.estimated-amount {
+background: rgba(245, 247, 255, 0.8);
+padding: 12px;
+border-radius: 8px;
+margin: 16px 0;
+font-size: 14px;
+color: #6B7280;
+text-align: center;
+backdrop-filter: blur(5px);
+-webkit-backdrop-filter: blur(5px);
+}
+
+.discord-link {
+color: #FFAD33;
+text-decoration: none;
+display: inline-flex;
+align-items: center;
+gap: 4px;
+margin-top: 12px;
+}
+
+.discord-link:hover {
+color: #B8860B;
+}
+
+.back-button {
+width: 100%;
+padding: 12px;
+background: rgba(245, 247, 255, 0.8);
+color: #6B7280;
+border: none;
+border-radius: 8px;
+font-weight: 500;
+cursor: pointer;
+transition: background-color 0.2s;
+margin-top: 16px;
+backdrop-filter: blur(5px);
+-webkit-backdrop-filter: blur(5px);
+}
+
+.back-button:hover {
+background: rgba(229, 231, 235, 0.8);
+}
+
+.min-amount {
+font-size: 12px;
+color: #6B7280;
+margin-top: 4px;
+}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="header">
+<h1>Glyph Swap (Beta)</h1>
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFAD33" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+<path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path>
+<path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path>
+<path d="M18 9v6"></path>
+</svg>
+</div>
+
+<form id="swapForm">
+<div class="token-select">
+<label>From</label>
+<button type="button" class="select-button" id="fromToken">
+<div class="token-info">
+<img src="https://static.wixstatic.com/media/c0fd9f_c2c4b7bf64464273a2cf3e30d08a9692~mv2.png" alt="RADCAT">
+<span>RADCAT</span>
+</div>
+<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+<path d="m6 9 6 6 6-6"/>
+</svg>
+</button>
+<div class="dropdown" id="fromTokenDropdown"></div>
+</div>
+
+<div class="input-group">
+<input type="number" id="amount" placeholder="0.0" min="0" step="any" required>
+<div id="minAmount" class="min-amount"></div>
+</div>
+
+<div class="token-select">
+<label>To</label>
+<button type="button" class="select-button" id="toToken">
+<div class="token-info">
+<img src="https://static.wixstatic.com/media/c0fd9f_6927af098c51411a834cbae8f0fc889e~mv2.png" alt="GLYPH">
+<span>GLYPH</span>
+</div>
+<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+<path d="m6 9 6 6 6-6"/>
+</svg>
+</button>
+<div class="dropdown" id="toTokenDropdown"></div>
+</div>
+
+<div class="input-group">
+<label>Your Photonic Wallet Address</label>
+<input type="text" id="walletAddress" placeholder="Enter your wallet address" required>
+</div>
+
+<button type="submit" class="submit-button">Swap Tokens</button>
+</form>
+
+<div id="swapResult" style="display: none;"></div>
+</div>
+
+<script>
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxEblRh63x9OQKBx08J1XeTAagDjiKpvEPHlAv-9DPNsuKrTD39lVhk2c6hcxVJjr331g/exec';
+const SWAP_WALLET = '1CiKtAE6Zf3tniKmPBhv1e7pBRezZM433N';
+const FEE_PERCENTAGE = 3;
+const DISCORD_URL = 'https://discord.gg/pwBMDDzWWG';
+
+const TOKENS = {
+RADCAT: { symbol: 'RADCAT', name: 'RadCat', imageUrl: 'https://static.wixstatic.com/media/c0fd9f_c2c4b7bf64464273a2cf3e30d08a9692~mv2.png', totalSupply: 21000000 },
+FUGAZI: { symbol: 'FUGAZI', name: 'Fugazi', imageUrl: 'https://static.wixstatic.com/media/c0fd9f_27b255b33ae74f2c9b7bb9a6c3cf9076~mv2.jpeg', totalSupply: 21000000 },
+PILIM: { symbol: 'PILIM', name: 'Pilim', imageUrl: 'https://static.wixstatic.com/media/c0fd9f_42bf29bc4cff49a2b50d46599890ecd7~mv2.png', totalSupply: 100000000000 },
+RAD: { symbol: 'RAD', name: 'RAD', imageUrl: 'https://static.wixstatic.com/media/c0fd9f_95f570fecb4b4ea08534747a1a751883~mv2.jpeg', totalSupply: 21000000000 },
+KEKW: { symbol: 'KEKW', name: 'KEKW', imageUrl: 'https://static.wixstatic.com/media/c0fd9f_e030f7448875438387a914a556ab0e52~mv2.jpeg', totalSupply: 100000000000 },
+PEPE: { symbol: 'PEPE', name: 'Pepe', imageUrl: 'https://static.wixstatic.com/media/c0fd9f_13942eda9a82482b8ae59796e34220df~mv2.webp', totalSupply: 2530000000000 },
+PHOS: { symbol: 'φῶς', name: 'φῶς', imageUrl: 'https://static.wixstatic.com/media/c0fd9f_a4b2c694af384f7e8afdc6ddfdb18353~mv2.png', totalSupply: 299792458 },
+DOGE: { symbol: 'DOGE', name: 'Doge', imageUrl: 'https://static.wixstatic.com/media/c0fd9f_b30b39721c80429ebba9a87f706cf9a7~mv2.webp', totalSupply: 90000000000 },
+NEP: { symbol: 'NEP', name: 'NEP', imageUrl: 'https://static.wixstatic.com/media/c0fd9f_a376f26b2f66430d9f1faab068f01043~mv2.png', totalSupply: 1000000 },
+DJANGO: { symbol: 'DJANGO', name: 'Django', imageUrl: 'https://static.wixstatic.com/media/c0fd9f_5237b40984fa4c8496901c2f8e0bbcd7~mv2.png', totalSupply: 7777770 },
+BTC: { symbol: 'BTC', name: 'BTC', imageUrl: 'https://static.wixstatic.com/media/c0fd9f_11f5dd345e2d4924bf5094d55b266236~mv2.png', totalSupply: 21000000 },
+SERPENTX: { symbol: 'SERPENTX', name: 'SerpentX', imageUrl: 'https://static.wixstatic.com/media/c0fd9f_8ca058e4b0774463ad74c5dcfc488c0b~mv2.png', totalSupply: 12050 },
+COPIUM: { symbol: 'COPIUM', name: 'Copium', imageUrl: 'https://static.wixstatic.com/media/c0fd9f_e81a776b811540928bb0d8808b54c934~mv2.gif', totalSupply: 10000000 },
+RADMALLOW: { symbol: 'RADMALLOW', name: 'RadMallow', imageUrl: 'https://static.wixstatic.com/media/c0fd9f_97e7451f05104b7e944ec62c2d025285~mv2.jpeg', totalSupply: 30000000 },
+MERI: { symbol: 'MERI', name: 'MERi', imageUrl: 'https://static.wixstatic.com/media/c0fd9f_be356f4b61f348409c608e610b92b736~mv2.png', totalSupply: 176720 },
+SPIN: { symbol: 'SPIN', name: 'Spin', imageUrl: 'https://static.wixstatic.com/media/c0fd9f_515535fd91e84eefb1d12dd8c888d766~mv2.png', totalSupply: 176767 },
+DIABLO: { symbol: 'DIABLO', name: 'Diablo', imageUrl: 'https://static.wixstatic.com/media/c0fd9f_93d945a22252439a9a164b905638a82d~mv2.jpeg', totalSupply: 666 },
+HOPIUM: { symbol: 'HOPIUM', name: 'Hopium', imageUrl: 'https://static.wixstatic.com/media/c0fd9f_d6553095bf94485eb40e6a9692683041~mv2.png', totalSupply: 1000000 },
+RGB: { symbol: 'RGB', name: 'RGB', imageUrl: 'https://static.wixstatic.com/media/c0fd9f_4d39998241254e3f9dcabaf92b6ab29b~mv2.jpeg', totalSupply: 420690000000 },
+ENTITY: { symbol: 'ENTITY', name: 'Entity', imageUrl: 'https://static.wixstatic.com/media/c0fd9f_f900c5d7c22a4eeba23efd0cd644737d~mv2.jpeg', totalSupply: 96877449 },
+RANTX: { symbol: 'RANTX', name: 'RantX', imageUrl: 'https://static.wixstatic.com/media/c0fd9f_6863004c80ad4fcdb133b150342266c6~mv2.png', totalSupply: 80000000 },
+RXDASIC: { symbol: 'RXDASIC', name: 'RXDasic', imageUrl: 'https://static.wixstatic.com/media/c0fd9f_a13e17e43b6240f3a2e3682216e58e13~mv2.jpeg', totalSupply: 96877449 },
+DPR: { symbol: 'DPR', name: 'DPR', imageUrl: 'https://static.wixstatic.com/media/c0fd9f_ac0f967a4b644e2a842e0055c193f255~mv2.png', totalSupply: 1000000 },
+BNET: { symbol: 'BNET', name: 'BNet', imageUrl: 'https://static.wixstatic.com/media/c0fd9f_d28cba7a923c4724bb27472202f72ec8~mv2.jpeg', totalSupply: 21000000 },
+LAURA: { symbol: 'LAURA', name: 'Laura', imageUrl: 'https://static.wixstatic.com/media/c0fd9f_7ca0a26f499d4595856cb3963e3dae65~mv2.png', totalSupply: 69696969 },
+BPM: { symbol: 'BPM', name: 'BPM', imageUrl: 'https://static.wixstatic.com/media/c0fd9f_b3f824d092254a358f215805b1d34e8c~mv2.png', totalSupply: 8888 },
+LAMBO: { symbol: 'LAMBO', name: 'Lambo', imageUrl: 'https://static.wixstatic.com/media/c0fd9f_5537b7e9dab94b1ebc4079bd20618fef~mv2.jpeg', totalSupply: 100000000000 },
+PIZZA: { symbol: 'PIZZA', name: 'Pizza', imageUrl: 'https://static.wixstatic.com/media/c0fd9f_03093461f46b401a95809e3fcd9e50a0~mv2.png', totalSupply: 3000000000 },
+BITQ: { symbol: 'BITQ', name: 'BitQ', imageUrl: 'https://static.wixstatic.com/media/c0fd9f_700703ca2bd441cfafc8be4c672464e0~mv2.png', totalSupply: 13000000 },
+R6: { symbol: 'R6', name: 'R6', imageUrl: 'https://static.wixstatic.com/media/c0fd9f_4eefce544afc45b19bdf22ad2a212f11~mv2.png', totalSupply: 360000000 },
+TYS: { symbol: 'TYS', name: 'TYS', imageUrl: 'https://static.wixstatic.com/media/c0fd9f_75262a104d234bf192736584ad75157c~mv2.gif', totalSupply: 2000000 },
+NINJA: { symbol: '忍者', name: '忍者', imageUrl: 'https://static.wixstatic.com/media/c0fd9f_31829fac979c4c4ebecf712b7bdc92bf~mv2.png', totalSupply: 1440000 },
+BOI: { symbol: 'BOI', name: 'BOI', imageUrl: 'https://static.wixstatic.com/media/c0fd9f_b401b49288064616828c845e4ed49611~mv2.png', totalSupply: 7000000 },
+DEEZ: { symbol: 'DEEZ', name: 'Deez', imageUrl: 'https://static.wixstatic.com/media/c0fd9f_7b5ce5d3d93f40b58e735a1cecf62605~mv2.png', totalSupply: 10000000 },
+RZBT: { symbol: 'RZBT', name: 'RZBT', imageUrl: 'https://static.wixstatic.com/media/c0fd9f_c67f9162590442c28adbc142653cefa6~mv2.png', totalSupply: 2100000 },
+KAKL: { symbol: 'KAKL', name: 'KAKL', imageUrl: 'https://static.wixstatic.com/media/c0fd9f_1cb146fab3b242f6987e8914f4dab9f5~mv2.png', totalSupply: 30030000 },
+OP_CAT: { symbol: 'OP_CAT', name: 'OP_CAT', imageUrl: 'https://static.wixstatic.com/media/c0fd9f_f26e3547881c4de58da9b80727dc5a6c~mv2.gif', totalSupply: 30000000 },
+UCME: { symbol: 'UȻME', name: 'UȻME', imageUrl: 'https://static.wixstatic.com/media/c0fd9f_6105ecd496ee40a7bcb6a95237062980~mv2.png', totalSupply: 30000000 },
+GLYPH: { symbol: 'GLYPH', name: 'Glyph', imageUrl: 'https://static.wixstatic.com/media/c0fd9f_6927af098c51411a834cbae8f0fc889e~mv2.png', totalSupply: 1000000000000 },
+GOAT: { symbol: 'GOAT', name: 'GOAT', imageUrl: 'https://static.wixstatic.com/media/c0fd9f_3aecdd807ad14d49880572eb82612830~mv2.png', totalSupply: 21000000 },
+XD: { symbol: 'XD', name: 'XD Token', imageUrl: 'https://static.wixstatic.com/media/c0fd9f_e237d0f063a74e72bdb47e00688b2560~mv2.png', totalSupply: 21000000000 }
+};
+
+const ALLOWED_TO_TOKENS = [
+'GLYPH', 'FUGAZI', 'RAD', 'DOGE', 'PEPE', 'KEKW', 'PHOS', 'NEP', 'DJANGO',
+'COPIUM', 'RGB', 'ENTITY', 'RXDASIC', 'DPR', 'BPM', 'LAMBO', 'PIZZA',
+'BITQ', 'R6', 'BOI', 'DEEZ', 'RZBT', 'KAKL', 'OP_CAT',
+'GOAT', 'PILIM'
+];
+
+let currentFromToken = TOKENS.RADCAT;
+let currentToToken = TOKENS.GLYPH;
+
+function calculateSwapAmount(fromToken, toToken, amount) {
+const ratio = toToken.totalSupply / fromToken.totalSupply;
+const baseAmount = amount * ratio;
+const feeAmount = baseAmount * (FEE_PERCENTAGE / 100);
+return baseAmount - feeAmount;
+}
+
+function calculateMinimumInputAmount(fromToken, toToken) {
+const ratio = toToken.totalSupply / fromToken.totalSupply;
+const minAmountBeforeFee = ratio;
+const minAmountWithFee = minAmountBeforeFee * (100 / (100 - FEE_PERCENTAGE));
+return minAmountWithFee;
+}
+
+function updateMinimumAmount() {
+const minAmount = calculateMinimumInputAmount(currentFromToken, currentToToken);
+document.getElementById('minAmount').textContent =
+'Minimum input: ' + minAmount.toFixed(6) + ' ' + currentFromToken.symbol +
+' (including ' + FEE_PERCENTAGE + '% fee)';
+}
+
+function validateSwapAmount(amount) {
+const estimatedAmount = calculateSwapAmount(currentFromToken, currentToToken, amount);
+return estimatedAmount >= 1;
+}
+
+function setupTokenSelect(buttonId, dropdownId, isToDropdown) {
+const button = document.getElementById(buttonId);
+const dropdown = document.getElementById(dropdownId);
+
+button.onclick = function() {
+dropdown.classList.toggle('active');
+};
+
+const tokens = isToDropdown
+? Object.keys(TOKENS).filter(symbol => ALLOWED_TO_TOKENS.includes(symbol)).map(symbol => TOKENS[symbol])
+: Object.values(TOKENS);
+
+let dropdownHtml = '';
+tokens.forEach(token => {
+dropdownHtml += `
+<div class="dropdown-item" data-symbol="${token.symbol}">
+<img src="${token.imageUrl}" alt="${token.symbol}">
+<span>${token.symbol}</span>
+</div>
+`;
+});
+dropdown.innerHTML = dropdownHtml;
+
+dropdown.onclick = function(e) {
+const item = e.target.closest('.dropdown-item');
+if (item) {
+const symbol = item.dataset.symbol;
+const token = TOKENS[symbol];
+const tokenInfo = button.querySelector('.token-info');
+tokenInfo.innerHTML = `
+<img src="${token.imageUrl}" alt="${token.symbol}">
+<span>${token.symbol}</span>
+`;
+if (buttonId === 'fromToken') {
+currentFromToken = token;
+} else {
+currentToToken = token;
+}
+dropdown.classList.remove('active');
+updateMinimumAmount();
+updateEstimatedAmount();
+}
+};
+
+document.addEventListener('click', function(e) {
+if (!button.contains(e.target) && !dropdown.contains(e.target)) {
+dropdown.classList.remove('active');
+}
+});
+}
+
+function updateEstimatedAmount() {
+const amount = document.getElementById('amount').value;
+if (amount) {
+const estimatedAmount = calculateSwapAmount(currentFromToken, currentToToken, parseFloat(amount));
+const existingEstimate = document.querySelector('.estimated-amount');
+if (existingEstimate) {
+existingEstimate.textContent = `Estimated output: ${estimatedAmount.toFixed(6)} ${currentToToken.symbol}`;
+} else {
+const estimate = document.createElement('div');
+estimate.className = 'estimated-amount';
+estimate.textContent = `Estimated output: ${estimatedAmount.toFixed(6)} ${currentToToken.symbol}`;
+document.getElementById('amount').parentNode.appendChild(estimate);
+}
+}
+}
+
+function sendToGoogleSheets(data) {
+return fetch(GOOGLE_SCRIPT_URL, {
+method: 'POST',
+mode: 'no-cors',
+cache: 'no-cache',
+headers: {
+'Content-Type': 'application/json',
+},
+body: JSON.stringify(data)
+})
+.then(response => {
+console.log('Data sent successfully');
+return true;
+})
+.catch(error => {
+console.error('Error sending data:', error);
+return false;
+});
+}
+
+document.getElementById('amount').oninput = updateEstimatedAmount;
+
+document.getElementById('swapForm').onsubmit = async function(e) {
+e.preventDefault();
+
+const amount = parseFloat(document.getElementById('amount').value);
+const walletAddress = document.getElementById('walletAddress').value;
+
+if (!validateSwapAmount(amount)) {
+alert(`Minimum output amount must be at least 1 ${currentToToken.symbol}`);
+return;
+}
+
+const estimatedAmount = calculateSwapAmount(currentFromToken, currentToToken, amount);
+
+const data = {
+tokenFrom: currentFromToken.symbol,
+tokenTo: currentToToken.symbol,
+amount: amount,
+receivingAmount: estimatedAmount,
+walletAddress: walletAddress,
+timestamp: new Date().toISOString()
+};
+
+const success = await sendToGoogleSheets(data);
+if (success) {
+showSwapResult(amount, estimatedAmount, walletAddress);
+} else {
+alert('There was an error processing your request. Please try again.');
+}
+};
+
+function handleCopy() {
+const textArea = document.createElement('textarea');
+textArea.value = SWAP_WALLET;
+document.body.appendChild(textArea);
+textArea.select();
+try {
+document.execCommand('copy');
+const copySuccess = document.getElementById('copySuccess');
+copySuccess.style.display = 'block';
+setTimeout(() => {
+copySuccess.style.display = 'none';
+}, 2000);
+} catch (err) {
+console.error('Failed to copy:', err);
+}
+document.body.removeChild(textArea);
+}
+
+function showSwapResult(amount, estimatedAmount, walletAddress) {
+const form = document.getElementById('swapForm');
+const result = document.getElementById('swapResult');
+
+form.style.display = 'none';
+result.style.display = 'block';
+
+result.innerHTML = `
+<div class="result">
+<img class="qr-code" src="https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(SWAP_WALLET)}&size=150x150" alt="QR Code">
+
+<p>Send ${amount} ${currentFromToken.symbol}</p>
+<p>from your wallet (${walletAddress})</p>
+
+<div class="wallet-address">
+<span>${SWAP_WALLET}</span>
+<button class="copy-button" onclick="handleCopy()">
+<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+<rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+</svg>
+</button>
+</div>
+<div id="copySuccess" class="success-message" style="display: none;">
+Address copied!
+</div>
+
+<div class="estimated-amount">
+You will receive approximately ${estimatedAmount.toFixed(6)} ${currentToToken.symbol}
+<br>(Including ${FEE_PERCENTAGE}% swap fee)
+</div>
+
+<div class="input-group">
+<input type="text" id="transactionId" placeholder="Enter your transaction ID">
+</div>
+<button class="submit-button" onclick="verifyTransaction()">Verify Transaction</button>
+</div>
+`;
+}
+
+async function verifyTransaction() {
+const transactionId = document.getElementById('transactionId').value;
+if (!transactionId) {
+alert('Please enter your transaction ID');
+return;
+}
+
+const data = {
+type: 'verify',
+transactionId: transactionId,
+walletAddress: document.getElementById('walletAddress').value,
+tokenFrom: currentFromToken.symbol,
+tokenTo: currentToToken.symbol,
+amount: document.getElementById('amount').value,
+timestamp: new Date().toISOString()
+};
+
+const success = await sendToGoogleSheets(data);
+if (success) {
+showCompletionMessage();
+} else {
+alert('There was an error verifying your transaction. Please try again.');
+}
+}
+
+function showCompletionMessage() {
+const result = document.getElementById('swapResult');
+result.innerHTML = `
+<div class="result">
+<h2 style="margin-bottom: 16px; font-size: 20px;">Thank you for swapping!</h2>
+<p style="margin-bottom: 16px;">Please expect 24 hours delivery time.</p>
+<a href="${DISCORD_URL}" target="_blank" rel="noopener noreferrer" class="discord-link">
+Contact us on Discord
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+<path d="M7 7h10v10"/><path d="M7 17 17 7"/>
+</svg>
+</a>
+<button onclick="backToSwap()" class="back-button">Back to Swap</button>
+</div>
+`;
+}
+
+function backToSwap() {
+document.getElementById('swapForm').style.display = 'block';
+document.getElementById('swapResult').style.display = 'none';
+document.getElementById('swapForm').reset();
+const existingEstimate = document.querySelector('.estimated-amount');
+if (existingEstimate) {
+existingEstimate.remove();
+}
+updateMinimumAmount();
+}
+
+setupTokenSelect('fromToken', 'fromTokenDropdown', false);
+setupTokenSelect('toToken', 'toTokenDropdown', true);
+updateMinimumAmount();
+</script>
+</body>
+</html>
