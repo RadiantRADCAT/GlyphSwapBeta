@@ -8,7 +8,7 @@
 body {
 overflow: hidden;
 font-family: Arial, sans-serif;
-background-image: url('https://static.wixstatic.com/media/c0fd9f_7a29e6d3a40f4821a14dbe8f93b9d069~mv2.jpg'); /* Replace with your image URL */
+background-image: url('https://static.wixstatic.com/media/c0fd9f_7a29e6d3a40f4821a14dbe8f93b9d069~mv2.jpg');
 background-size: cover;
 background-position: center;
 padding: 20px;
@@ -264,6 +264,18 @@ font-size: 12px;
 color: #6B7280;
 margin-top: 4px;
 }
+
+.liquidity-info {
+font-size: 12px;
+color: #6B7280;
+margin-top: 4px;
+}
+
+.error-message {
+color: #DC2626;
+font-size: 14px;
+margin-top: 4px;
+}
 </style>
 </head>
 <body>
@@ -372,12 +384,40 @@ GOAT: { symbol: 'GOAT', name: 'GOAT', imageUrl: 'https://static.wixstatic.com/me
 XD: { symbol: 'XD', name: 'XD Token', imageUrl: 'https://static.wixstatic.com/media/c0fd9f_e237d0f063a74e72bdb47e00688b2560~mv2.png', totalSupply: 21000000000 }
 };
 
-const ALLOWED_TO_TOKENS = [
-'GLYPH', 'FUGAZI', 'RAD', 'DOGE', 'PEPE', 'KEKW', 'PHOS', 'NEP', 'DJANGO',
+const LIQUIDITY_POOL = {
+"FUGAZI": 204450,
+"PILIM": 25280000,
+"RAD": 137900000,
+"KEKW": 12880000,
+"PEPE": 45223222176,
+"φῶς": 2642892,
+"DOGE": 18390399991,
+"NEP": 48574000,
+"DJANGO": 2561000,
+"COPIUM": 1000,
+"RGB": 1500400,
+"ENTITY": 5451,
+"RXDASIC": 1035,
+"DPR": 203,
+"BPM": 2,
+"LAMBO": 2480000,
+"PIZZA": 69000,
+"BITQ": 37,
+"R6": 8339844,
+"BOI": 322,
+"DEEZ": 430,
+"RZBT": 45980,
+"KAKL": 810,
+"OP_CAT": 4170,
+"GOAT": 5470,
+"GLYPH": 190114220,
+"RADCAT": 1000000,
+};
+
+const ALLOWED_TO_TOKENS = ['RADCAT',GLYPH', 'FUGAZI', 'RAD', 'DOGE', 'PEPE', 'KEKW', 'PHOS', 'NEP', 'DJANGO',
 'COPIUM', 'RGB', 'ENTITY', 'RXDASIC', 'DPR', 'BPM', 'LAMBO', 'PIZZA',
 'BITQ', 'R6', 'BOI', 'DEEZ', 'RZBT', 'KAKL', 'OP_CAT',
-'GOAT', 'PILIM'
-];
+'GOAT', 'PILIM'];
 
 let currentFromToken = TOKENS.RADCAT;
 let currentToToken = TOKENS.GLYPH;
@@ -405,6 +445,12 @@ document.getElementById('minAmount').textContent =
 
 function validateSwapAmount(amount) {
 const estimatedAmount = calculateSwapAmount(currentFromToken, currentToToken, amount);
+const availableLiquidity = LIQUIDITY_POOL[currentToToken.symbol] || 0;
+
+if (estimatedAmount > availableLiquidity * 0.5) {
+return false;
+}
+
 return estimatedAmount >= 1;
 }
 
@@ -417,15 +463,16 @@ dropdown.classList.toggle('active');
 };
 
 const tokens = isToDropdown
-? Object.keys(TOKENS).filter(symbol => ALLOWED_TO_TOKENS.includes(symbol)).map(symbol => TOKENS[symbol])
+? ALLOWED_TO_TOKENS.map(symbol => TOKENS[symbol])
 : Object.values(TOKENS);
 
 let dropdownHtml = '';
 tokens.forEach(token => {
+const liquidityInfo = isToDropdown ? ` (Liquidity: ${LIQUIDITY_POOL[token.symbol].toLocaleString()})` : '';
 dropdownHtml += `
 <div class="dropdown-item" data-symbol="${token.symbol}">
 <img src="${token.imageUrl}" alt="${token.symbol}">
-<span>${token.symbol}</span>
+<span>${token.symbol}${liquidityInfo}</span>
 </div>
 `;
 });
@@ -449,6 +496,7 @@ currentToToken = token;
 dropdown.classList.remove('active');
 updateMinimumAmount();
 updateEstimatedAmount();
+updateLiquidityInfo();
 }
 };
 
@@ -463,7 +511,23 @@ function updateEstimatedAmount() {
 const amount = document.getElementById('amount').value;
 if (amount) {
 const estimatedAmount = calculateSwapAmount(currentFromToken, currentToToken, parseFloat(amount));
+const availableLiquidity = LIQUIDITY_POOL[currentToToken.symbol] || 0;
 const existingEstimate = document.querySelector('.estimated-amount');
+const existingError = document.querySelector('.error-message');
+
+if (existingError) {
+existingError.remove();
+}
+
+if (estimatedAmount > availableLiquidity * 0.5) {
+if (existingEstimate) {
+existingEstimate.remove();
+}
+const error = document.createElement('div');
+error.className = 'error-message';
+error.textContent = `Error: Swap amount exceeds 50% of available liquidity (${(availableLiquidity * 0.5).toFixed(6)} ${currentToToken.symbol})`;
+document.getElementById('amount').parentNode.appendChild(error);
+} else {
 if (existingEstimate) {
 existingEstimate.textContent = `Estimated output: ${estimatedAmount.toFixed(6)} ${currentToToken.symbol}`;
 } else {
@@ -472,6 +536,20 @@ estimate.className = 'estimated-amount';
 estimate.textContent = `Estimated output: ${estimatedAmount.toFixed(6)} ${currentToToken.symbol}`;
 document.getElementById('amount').parentNode.appendChild(estimate);
 }
+}
+}
+}
+
+function updateLiquidityInfo() {
+const liquidityAmount = LIQUIDITY_POOL[currentToToken.symbol] || 0;
+const existingInfo = document.querySelector('.liquidity-info');
+if (existingInfo) {
+existingInfo.textContent = `Available liquidity: ${liquidityAmount.toLocaleString()} ${currentToToken.symbol}`;
+} else {
+const info = document.createElement('div');
+info.className = 'liquidity-info';
+info.textContent = `Available liquidity: ${liquidityAmount.toLocaleString()} ${currentToToken.symbol}`;
+document.getElementById('toToken').parentNode.appendChild(info);
 }
 }
 
@@ -504,7 +582,8 @@ const amount = parseFloat(document.getElementById('amount').value);
 const walletAddress = document.getElementById('walletAddress').value;
 
 if (!validateSwapAmount(amount)) {
-alert(`Minimum output amount must be at least 1 ${currentToToken.symbol}`);
+const availableLiquidity = LIQUIDITY_POOL[currentToToken.symbol] || 0;
+alert(`Swap amount exceeds 50% of available liquidity (${(availableLiquidity * 0.5).toFixed(6)} ${currentToToken.symbol}) or minimum output amount must be at least 1 ${currentToToken.symbol}`);
 return;
 }
 
@@ -635,11 +714,13 @@ if (existingEstimate) {
 existingEstimate.remove();
 }
 updateMinimumAmount();
+updateLiquidityInfo();
 }
 
 setupTokenSelect('fromToken', 'fromTokenDropdown', false);
 setupTokenSelect('toToken', 'toTokenDropdown', true);
 updateMinimumAmount();
+updateLiquidityInfo();
 </script>
 </body>
 </html>
