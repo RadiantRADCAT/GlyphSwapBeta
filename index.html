@@ -3,14 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Token Swap Interface</title>
+<title>Glyph Swap</title>
+<link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 <style>
 body {
-overflow: hidden;
-font-family: Arial, sans-serif;
+overflow-y: auto;
+font-family: 'Red Hat Display', Arial, sans-serif;
 background-image: url('https://static.wixstatic.com/media/c0fd9f_7a29e6d3a40f4821a14dbe8f93b9d069~mv2.jpg');
 background-size: cover;
 background-position: center;
+background-attachment: fixed;
 padding: 20px;
 margin: 0;
 min-height: 100vh;
@@ -28,6 +30,7 @@ box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
 padding: 24px;
 backdrop-filter: blur(10px);
 -webkit-backdrop-filter: blur(10px);
+margin-bottom: 50px;
 }
 
 .header {
@@ -39,9 +42,34 @@ margin-bottom: 24px;
 
 .header h1 {
 font-size: 24px;
-font-weight: 600;
 color: #111827;
 margin: 0;
+display: flex;
+align-items: center;
+}
+
+.header h1 img {
+width: 24px;
+height: 24px;
+margin-right: 8px;
+}
+
+.header h1 span:first-child {
+font-weight: 700;
+}
+
+.header h1 span:last-child {
+font-style: italic;
+font-weight: 400;
+}
+
+.beta-label {
+font-size: 12px;
+font-weight: 500;
+color: #1E40AF;
+background-color: #DBEAFE;
+padding: 4px 8px;
+border-radius: 9999px;
 }
 
 .token-select {
@@ -281,12 +309,11 @@ margin-top: 4px;
 <body>
 <div class="container">
 <div class="header">
-<h1>Glyph Swap (Beta)</h1>
-<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFAD33" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-<path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path>
-<path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path>
-<path d="M18 9v6"></path>
-</svg>
+<h1>
+<img src="https://static.wixstatic.com/media/c0fd9f_cfacf9e215804e3a8ad37a1f5e0d3f11~mv2.png" alt="Glyph Swap Logo">
+<span>Glyph</span> <span>Swap</span>
+</h1>
+<div class="beta-label">Beta</div>
 </div>
 
 <form id="swapForm">
@@ -386,39 +413,24 @@ XD: { symbol: 'XD', name: 'XD Token', imageUrl: 'https://static.wixstatic.com/me
 };
 
 const LIQUIDITY_POOL = {
+"RADCAT": 1000000,
+"GLYPH": 190114220,
 "FUGAZI": 204450,
 "PILIM": 25280000,
 "RAD": 137900000,
 "KEKW": 12880000,
 "PEPE": 45223222176,
-"φῶς": 2642892,
+"PHOS": 2642892,
 "DOGE": 18390399991,
 "NEP": 48574000,
 "DJANGO": 2561000,
-"COPIUM": 1000,
-"RGB": 1500400,
-"ENTITY": 5451,
-"RXDASIC": 1035,
-"DPR": 203,
-"BPM": 2,
-"LAMBO": 2480000,
-"PIZZA": 69000,
-"BITQ": 37,
-"R6": 8339844,
-"BOI": 322,
-"DEEZ": 430,
-"RZBT": 45980,
-"KAKL": 810,
-"OP_CAT": 4170,
-"GOAT": 5470,
-"RADCAT": 1000000,
-"GLYPH": 190114220,
 };
 
 const ALLOWED_TO_TOKENS = ['RADCAT', 'GLYPH', 'FUGAZI', 'RAD', 'DOGE', 'PEPE', 'KEKW', 'PHOS', 'NEP', 'DJANGO',
 'COPIUM', 'RGB', 'ENTITY', 'RXDASIC', 'DPR', 'BPM', 'LAMBO', 'PIZZA',
 'BITQ', 'R6', 'BOI', 'DEEZ', 'RZBT', 'KAKL', 'OP_CAT',
 'GOAT', 'PILIM'];
+
 
 let currentFromToken = TOKENS.RXD;
 let currentToToken = TOKENS.RADCAT;
@@ -439,9 +451,8 @@ return minAmountWithFee;
 
 function updateMinimumAmount() {
 const minAmount = calculateMinimumInputAmount(currentFromToken, currentToToken);
-document.getElementById('minAmount').textContent =
-'Minimum input: ' + minAmount.toFixed(6) + ' ' + currentFromToken.symbol +
-' (including ' + FEE_PERCENTAGE + '% fee)';
+document.getElementById('minAmount').textContent = 
+`Minimum input: ${minAmount.toFixed(6)} ${currentFromToken.symbol} (including ${FEE_PERCENTAGE}% fee)`;
 }
 
 function validateSwapAmount(amount) {
@@ -463,13 +474,13 @@ button.onclick = function() {
 dropdown.classList.toggle('active');
 };
 
-const tokens = isToDropdown
+const tokens = isToDropdown 
 ? ALLOWED_TO_TOKENS.map(symbol => TOKENS[symbol])
 : Object.values(TOKENS);
 
 let dropdownHtml = '';
 tokens.forEach(token => {
-const liquidityInfo = isToDropdown ? ` (Liquidity: ${LIQUIDITY_POOL[token.symbol].toLocaleString()})` : '';
+const liquidityInfo = isToDropdown ? ` (Liquidity: ${LIQUIDITY_POOL[token.symbol]?.toLocaleString() ?? 0})` : '';
 dropdownHtml += `
 <div class="dropdown-item" data-symbol="${token.symbol}">
 <img src="${token.imageUrl}" alt="${token.symbol}">
