@@ -570,7 +570,7 @@ function updateLiquidityInfo() {
     const liquidityAmount = LIQUIDITY_POOL[currentToToken.symbol] || 0;
     const existingInfo = document.querySelector('.liquidity-info');
     const newContent = `Available liquidity: ${liquidityAmount.toLocaleString()} ${currentToToken.symbol}`;
-    
+
     if (existingInfo) {
         if (existingInfo.textContent !== newContent) {
             existingInfo.textContent = newContent;
@@ -637,6 +637,9 @@ document.getElementById('swapForm').onsubmit = async function(e) {
         
         updateLiquidityInfo();
         showSwapResult(amount, estimatedAmount, walletAddress);
+        
+        // Save updated liquidity pool to local storage
+        localStorage.setItem('LIQUIDITY_POOL', JSON.stringify(LIQUIDITY_POOL));
     } else {
         alert('There was an error processing your request. Please try again.');
     }
@@ -730,6 +733,15 @@ function backToSwap() {
     updateMinimumAmount();
     updateLiquidityInfo();
 }
+
+// Load liquidity pool data from local storage on page load
+window.addEventListener('load', () => {
+    const storedLiquidityPool = localStorage.getItem('LIQUIDITY_POOL');
+    if (storedLiquidityPool) {
+        LIQUIDITY_POOL = JSON.parse(storedLiquidityPool);
+    }
+    updateLiquidityInfo();
+});
 
 setupTokenSelect('fromToken', 'fromTokenDropdown', false);
 setupTokenSelect('toToken', 'toTokenDropdown', true);
