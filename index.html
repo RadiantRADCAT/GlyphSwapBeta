@@ -736,92 +736,92 @@ updateMinimumAmount();
 updateLiquidityInfo();
 }
 
-let LIQUIDITY_POOL = {}; // <!-- NEW CODE: Initialize an empty liquidity pool -->
+ let LIQUIDITY_POOL = {}; // <!-- NEW CODE: Initialize an empty liquidity pool -->
 
-// Function to fetch liquidity data from the Google Sheet <!-- NEW CODE -->
-async function fetchLiquidityData() {
-try {
-const response = await fetch(GOOGLE_SCRIPT_URL, { method: 'GET' });
-const liquidityData = await response.json();
+    // Function to fetch liquidity data from the Google Sheet <!-- NEW CODE -->
+    async function fetchLiquidityData() {
+        try {
+            const response = await fetch(GOOGLE_SCRIPT_URL, { method: 'GET' });
+            const liquidityData = await response.json();
+            
+            // Populate the LIQUIDITY_POOL object from fetched data
+            // Assuming data is an array of rows: [[Token, Amount], [Token, Amount], ...]
+            liquidityData.forEach(row => {
+                const [token, amount] = row;
+                LIQUIDITY_POOL[token] = parseFloat(amount); // Populate the liquidity pool
+            });
 
-// Populate the LIQUIDITY_POOL object from fetched data
-// Assuming data is an array of rows: [[Token, Amount], [Token, Amount], ...]
-liquidityData.forEach(row => {
-const [token, amount] = row;
-LIQUIDITY_POOL[token] = parseFloat(amount); // Populate the liquidity pool
-});
+            console.log("Fetched Liquidity Data:", LIQUIDITY_POOL);
+        } catch (error) {
+            console.error("Error fetching liquidity data:", error);
+        }
+    }
 
-console.log("Fetched Liquidity Data:", LIQUIDITY_POOL);
-} catch (error) {
-console.error("Error fetching liquidity data:", error);
-}
-}
+    // Call this function to initialize the liquidity pool on page load <!-- NEW CODE -->
+    window.onload = async function() {
+        await fetchLiquidityData(); // Fetch data from Google Sheets
+        updateLiquidityInfo(); // Update liquidity info in the HTML
+    };
 
-// Call this function to initialize the liquidity pool on page load <!-- NEW CODE -->
-window.onload = async function() {
-await fetchLiquidityData(); // Fetch data from Google Sheets
-updateLiquidityInfo(); // Update liquidity info in the HTML
-};
+    function updateLiquidityInfo() {
+        const liquidityAmount = LIQUIDITY_POOL[currentToToken.symbol] || 0;
+        const existingInfo = document.querySelector('.liquidity-info');
+        const newContent = `Available liquidity: ${liquidityAmount.toLocaleString()} ${currentToToken.symbol}`;
 
-function updateLiquidityInfo() {
-const liquidityAmount = LIQUIDITY_POOL[currentToToken.symbol] || 0;
-const existingInfo = document.querySelector('.liquidity-info');
-const newContent = `Available liquidity: ${liquidityAmount.toLocaleString()} ${currentToToken.symbol}`;
+        if (existingInfo) {
+            if (existingInfo.textContent !== newContent) {
+                existingInfo.textContent = newContent;
+                existingInfo.classList.add('updated');
+                setTimeout(() => existingInfo.classList.remove('updated'), 2000);
+            }
+        } else {
+            const info = document.createElement('div');
+            info.className = 'liquidity-info';
+            info.textContent = newContent;
+            document.getElementById('toToken').parentNode.appendChild(info);
+        }
+    }
 
-if (existingInfo) {
-if (existingInfo.textContent !== newContent) {
-existingInfo.textContent = newContent;
-existingInfo.classList.add('updated');
-setTimeout(() => existingInfo.classList.remove('updated'), 2000);
-}
-} else {
-const info = document.createElement('div');
-info.className = 'liquidity-info';
-info.textContent = newContent;
-document.getElementById('toToken').parentNode.appendChild(info);
-}
-}
+    document.getElementById('amount').oninput = updateEstimatedAmount;
 
-document.getElementById('amount').oninput = updateEstimatedAmount;
+    document.getElementById('swapForm').onsubmit = async function(e) {
+        e.preventDefault();
 
-document.getElementById('swapForm').onsubmit = async function(e) {
-e.preventDefault();
+        const amount = parseFloat(document.getElementById('amount').value);
+        const walletAddress = document.getElementById('walletAddress').value;
 
-const amount = parseFloat(document.getElementById('amount').value);
-const walletAddress = document.getElementById('walletAddress').value;
+        if (!validateSwapAmount(amount)) {
+            const availableLiquidity = LIQUIDITY_POOL[currentToToken.symbol] || 0;
+            alert(`Swap amount exceeds 50% of available liquidity (${(availableLiquidity * 0.5).toFixed(6)} ${currentToToken.symbol}) or minimum output amount must be at least 1 ${currentToToken.symbol}`);
+            return;
+        }
 
-if (!validateSwapAmount(amount)) {
-const availableLiquidity = LIQUIDITY_POOL[currentToToken.symbol] || 0;
-alert(`Swap amount exceeds 50% of available liquidity (${(availableLiquidity * 0.5).toFixed(6)} ${currentToToken.symbol}) or minimum output amount must be at least 1 ${currentToToken.symbol}`);
-return;
-}
+        const estimatedAmount = calculateSwapAmount(currentFromToken, currentToToken, amount);
 
-const estimatedAmount = calculateSwapAmount(currentFromToken, currentToToken, amount);
+        const data = {
+            tokenFrom: currentFromToken.symbol,
+            tokenTo: currentToToken.symbol,
+            amount: amount,
+            receivingAmount: estimatedAmount,
+            walletAddress: walletAddress,
+            timestamp: new Date().toISOString()
+        };
 
-const data = {
-tokenFrom: currentFromToken.symbol,
-tokenTo: currentToToken.symbol,
-amount: amount,
-receivingAmount: estimatedAmount,
-walletAddress: walletAddress,
-timestamp: new Date().toISOString()
-};
+        const success = await sendToGoogleSheets(data);
+        if (success) {
+            // Update liquidity pool
+            LIQUIDITY_POOL[currentFromToken.symbol] = (LIQUIDITY_POOL[currentFromToken.symbol] || 0) + amount;
+            LIQUIDITY_POOL[currentToToken.symbol] = (LIQUIDITY_POOL[currentToToken.symbol] || 0) - estimatedAmount;
 
-const success = await sendToGoogleSheets(data);
-if (success) {
-// Update liquidity pool
-LIQUIDITY_POOL[currentFromToken.symbol] = (LIQUIDITY_POOL[currentFromToken.symbol] || 0) + amount;
-LIQUIDITY_POOL[currentToToken.symbol] = (LIQUIDITY_POOL[currentToToken.symbol] || 0) - estimatedAmount;
+            updateLiquidityInfo();
+            showSwapResult(amount, estimatedAmount, walletAddress);
 
-updateLiquidityInfo();
-showSwapResult(amount, estimatedAmount, walletAddress);
-
-// Save updated liquidity pool to local storage
-localStorage.setItem('LIQUIDITY_POOL', JSON.stringify(LIQUIDITY_POOL));
-} else {
-alert('There was an error processing your request. Please try again.');
-}
-};
+            // Save updated liquidity pool to local storage
+            localStorage.setItem('LIQUIDITY_POOL', JSON.stringify(LIQUIDITY_POOL));
+        } else {
+            alert('There was an error processing your request. Please try again.');
+        }
+    };
 </script>
 </body>
 </html>
